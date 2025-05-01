@@ -24,6 +24,7 @@ type CreateUserParams struct {
 }
 
 type UpdateUserParams struct {
+	ID uuid.UUID `json:"ID"`
 	DisplayName string `json:"display_name,omitempty"`
 	ProfilePictureURL string `json:"profile_picture_url,omitempty"`
 	Username string `json:"username,omitempty"`
@@ -31,6 +32,7 @@ type UpdateUserParams struct {
 
 type UserCrud interface {
 	CreateUser(CreateUserParams) (User, error)
+	RetrieveUsers() ([]User, error)
 	RetrieveUserById(uuid.UUID) (User, error)
 	RetrieveUserByDisplayName(string) (User, error)
 	RetrieveUserByEmail(string) (User, error)

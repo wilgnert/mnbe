@@ -1,12 +1,19 @@
 package routes
 
-import "net/http"
+import (
+	"net/http"
 
-func LoadRoutes() *http.ServeMux {
-	router := http.NewServeMux()
+	"github.com/wilgnert/mnbe/internal/pkg/api"
+)
 
-	v1 := http.NewServeMux()
-	v1.Handle("/v1/", http.StripPrefix("/v1", router))
+func LoadRoutes(cfg *api.Config) *http.ServeMux {
+	user := http.NewServeMux()
+	user.Handle("GET /users/", cfg.Handlers[api.GetAllUsers])
+	user.Handle("POST /users/", cfg.Handlers[api.RegisterUser])
 
-	return router
+	v0 := http.NewServeMux()
+	v0.Handle("/v0/", http.StripPrefix("/v0", user))
+	v0.Handle("/", http.HandlerFunc(api.RespondOK))
+
+	return v0
 }
