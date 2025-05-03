@@ -3,9 +3,11 @@ package lib
 import (
 	"fmt"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/wilgnert/mnbe/internal/pkg/auth"
 )
 
 type UserWithHashedPassword struct {
@@ -18,6 +20,7 @@ type UserStub struct {
 }
 
 func (u *UserStub) CreateUser(params CreateUserParams) (User, error) {
+
 	u.users = append(u.users, UserWithHashedPassword{
 		User: User{
 			ID: uuid.New(),
@@ -35,10 +38,50 @@ func (u *UserStub) CreateUser(params CreateUserParams) (User, error) {
 	return u.users[len(u.users) - 1].User, nil
 }
 
-func (u *UserStub) RetrieveUsers() ([]User, error) {
+func (u *UserStub) RetrieveUsers(page, limit, offset int, sort string) ([]User, error) {
+	lower := offset + (page - 1) * limit
+	if lower > len(u.users) {
+		return nil, nil
+	}
+	higher := lower + limit
+	if higher > len(u.users) {
+		higher = len(u.users)
+	}
 	var users []User
-	for _, user := range u.users {
+	for _, user := range u.users[lower:higher] {
 		users = append(users, user.User)
+	}
+	switch sort {
+	case "newest":
+		slices.SortFunc(users, func(u1, u2 User) int {
+			if u1.CreatedAt.Before(u2.CreatedAt) {
+				return -1
+			}
+			if u1.CreatedAt.After(u2.CreatedAt) {
+				return 1
+			}
+			return 0
+		})
+	case "oldest":
+		slices.SortFunc(users, func(u1, u2 User) int {
+			if u1.CreatedAt.After(u2.CreatedAt) {
+				return -1
+			}
+			if u1.CreatedAt.Before(u2.CreatedAt) {
+				return 1
+			}
+			return 0
+		})
+	case "lexical_asc":
+		slices.SortFunc(users, func(u1, u2 User) int {
+			return strings.Compare(u1.Username, u2.Username)
+		})
+	case "lexical_desc":
+		slices.SortFunc(users, func(u1, u2 User) int {
+			return strings.Compare(u2.Username, u1.Username)
+		})
+	default:
+		return []User{}, fmt.Errorf("unknown sort type")
 	}
 	return users, nil
 }
@@ -73,9 +116,31 @@ func (u *UserStub) RetrieveUserByEmail(email string) (User, error) {
 	return u.users[idx].User, nil
 }
 
+func (u *UserStub) RetrieveUserByEmailAndPassword(email, password string) (User, error) {
+	idx := slices.IndexFunc(u.users, func(user UserWithHashedPassword) bool {
+		err := auth.CheckPasswordHash(user.HashedPassword, password)
+		return user.Email == email && err == nil
+	})
+	if idx == -1 {
+		return User{}, fmt.Errorf("user not found")
+	}
+	return u.users[idx].User, nil
+}
+
 func (u *UserStub) RetrieveUserByUsername(username string) (User, error) {
 	idx := slices.IndexFunc(u.users, func(user UserWithHashedPassword) bool {
 		return user.Username == username
+	})
+	if idx == -1 {
+		return User{}, fmt.Errorf("user not found")
+	}
+	return u.users[idx].User, nil
+}
+
+func (u *UserStub) RetrieveUserByUsernameAndPassword(username, password string) (User, error) {
+	idx := slices.IndexFunc(u.users, func(user UserWithHashedPassword) bool {
+		err := auth.CheckPasswordHash(user.HashedPassword, password)
+		return user.Username == username && err == nil
 	})
 	if idx == -1 {
 		return User{}, fmt.Errorf("user not found")

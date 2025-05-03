@@ -13,7 +13,7 @@ import (
 
 const (
 	UserEmail = "user.email"
-	UserHashedPassword = "User.hashed_password"
+	UserPassword = "User.password"
 )
 
 type Key string
@@ -96,4 +96,4 @@ func ExtractFieldMiddleware(fieldName string, ExtractedFieldKey Key) func(http.H
 }
 
 var ExtractEmail = ExtractFieldMiddleware("email", UserEmail)
-var ExtractHashedPassword = ExtractFieldMiddleware("hashed_password", UserHashedPassword)
+var ExtractPassword = ExtractFieldMiddleware("password", UserPassword)

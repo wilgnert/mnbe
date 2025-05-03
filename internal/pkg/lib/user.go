@@ -32,13 +32,12 @@ type UpdateUserParams struct {
 
 type UserCrud interface {
 	CreateUser(CreateUserParams) (User, error)
-	RetrieveUsers() ([]User, error)
+	RetrieveUsers(page int, limit int, offset int, sort string) ([]User, error)
 	RetrieveUserById(uuid.UUID) (User, error)
-	RetrieveUserByDisplayName(string) (User, error)
 	RetrieveUserByEmail(string) (User, error)
+	RetrieveUserByEmailAndPassword(string, string) (User, error)
 	RetrieveUserByUsername(string) (User, error)
+	RetrieveUserByUsernameAndPassword(string, string) (User, error)
 	UpdateUser(UpdateUserParams) (User, error)
 	DeleteUserByID(uuid.UUID) error
-	DeleteUserByEmail(string) error
-	DeleteUserByUsername(string) error
 }

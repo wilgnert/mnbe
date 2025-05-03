@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 
@@ -10,18 +9,18 @@ import (
 	"github.com/wilgnert/mnbe/internal/pkg/middleware"
 )
 
-const (
-	GetAllUsers = "GetAllUsers"
-	RegisterUser = "RegisterUser"
-)
-
 type Config struct {
 	db lib.Database
 	Handlers map[string]http.Handler
+	secret string
 }
 
 func (c *Config) SetDB(db lib.Database) {
 	c.db = db
+}
+
+func (c *Config) SetSecret(s string) {
+	c.secret = s
 }
 
 func (c *Config) RegisterHandlers() {
@@ -31,31 +30,13 @@ func (c *Config) RegisterHandlers() {
 	c.Handlers[GetAllUsers] = http.HandlerFunc(c.handlerGetAllUsers)
 	c.Handlers[RegisterUser] = middleware.CreateStack(
 		middleware.ExtractEmail,
-		middleware.ExtractHashedPassword,
+		middleware.ExtractPassword,
 	)(http.HandlerFunc(c.handlerRegisterUser))
-}
-
-func (c *Config) handlerGetAllUsers(w http.ResponseWriter, r *http.Request) {
-	allUsers, err := c.db.RetrieveUsers()
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
-	}
-	respondWithJSON(w, http.StatusOK, allUsers)
-}
-func (c *Config) handlerRegisterUser(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(r.Context())
-	email := r.Context().Value(middleware.Key(middleware.UserEmail)).(string)
-	hashed_password := r.Context().Value(middleware.Key(middleware.UserHashedPassword)).(string)
-
-	user, err := c.db.CreateUser(lib.CreateUserParams{
-		Email: email,
-		HashedPassword: hashed_password,
-	})
-	if err != nil {
-		respondWithError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-	respondWithJSON(w, http.StatusOK, user)
+	c.Handlers[GetUserByID] = http.HandlerFunc(c.handlerGetUserByID)
+	c.Handlers[Login] = middleware.CreateStack(
+		middleware.ExtractEmail,
+		middleware.ExtractPassword,
+	)(http.HandlerFunc(c.handlerLogin))
 
 }
 
