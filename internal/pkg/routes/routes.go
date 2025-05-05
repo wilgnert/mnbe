@@ -12,6 +12,7 @@ func LoadRoutes(cfg *api.Config) *http.ServeMux {
 	user.Handle("GET /users/{user_id}", cfg.Handlers[api.GetUserByID])
 	user.Handle("POST /users/", cfg.Handlers[api.RegisterUser])
 	user.Handle("POST /login/", cfg.Handlers[api.Login])
+	user.Handle("POST /refresh/", cfg.Handlers[api.Refresh])
 
 	v0 := http.NewServeMux()
 	v0.Handle("/v0/", http.StripPrefix("/v0", user))

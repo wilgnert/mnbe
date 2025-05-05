@@ -37,6 +37,10 @@ func (c *Config) RegisterHandlers() {
 		middleware.ExtractEmail,
 		middleware.ExtractPassword,
 	)(http.HandlerFunc(c.handlerLogin))
+	c.Handlers[Refresh] = middleware.CreateStack(
+		middleware.ExtractBearer,
+		middleware.ExtractUserID,
+	)(http.HandlerFunc(c.handlerRefreshAccessToken))
 
 }
 

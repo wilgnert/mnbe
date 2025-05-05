@@ -1,0 +1,56 @@
+{
+  "id": "uuid",
+  "title": "Redo The Healer",
+  "type": "novel",
+  "alias": {
+    "en": [
+      "Redo The Healer",
+      "Redo of healer"
+    ],
+    "jp": [
+      "Kaifuku Jutsushi no Yarinaoshi",
+      "Kaiyari"
+    ]
+  },
+  "rating": 4.4,
+  "tags": [
+    "Aventura",
+    "Romance"
+  ],
+  "trigger_warnings": [
+    "violence",
+    "sexual abuse"
+  ],
+  "status": "Em lançamento",
+  "desc": "Os magos de cura podem lutar sozinhos...",
+  "author": "Rose Kethen",
+  "group": "RK originals",
+  "bannerURL": "https://example.com/banner",
+  "coverURL": "https://example.com/cover",
+  "chapters": [
+    {
+      "id":"1",
+      "title": "First chapter",
+      "description": "A beautiful start of a beautiful story",
+      "trigger_warnings": [
+        "violence"
+      ], 
+      "text": "Lorem ipsum dolor salet",
+      "num_pages": null,
+      "comments": [
+        {
+          "id": "1",
+          "parent": null,
+          "commenter_id": "uuid",
+          "content": "too short"
+        },
+        {
+          "id": "2",
+          "parent": "1",
+          "commenter_id": "uuid",
+          "content": "short is your mother"
+        }
+      ]
+    }
+  ]
+}

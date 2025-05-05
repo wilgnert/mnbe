@@ -14,6 +14,7 @@ const (
 	RegisterUser = "RegisterUser"
 	GetUserByID  = "GetUserByID"
 	Login        = "Login"
+	Refresh 		 = "Refresh"
 )
 
 func (c *Config) handlerLogin(w http.ResponseWriter, r *http.Request) {
@@ -100,4 +101,17 @@ func (c *Config) handlerRegisterUser(w http.ResponseWriter, r *http.Request) {
 		respondWithJSON(w, status, payload)
 	}
 
+}
+
+func (c *Config) handlerRefreshAccessToken(w http.ResponseWriter, r *http.Request) {
+	user_id := r.Context().Value(middleware.Key(middleware.UserID)).(string)
+	refresh_token := r.Context().Value(middleware.Key(middleware.RequestBearer)).(string)
+
+	status, payload, err := services.RefreshAccessToken(user_id, refresh_token, c.secret, c.db)
+
+	if err != nil {
+		respondWithError(w, status, err.Error())
+	} else {
+		respondWithJSON(w, status, payload)
+	}
 }

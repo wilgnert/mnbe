@@ -9,11 +9,17 @@ import (
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/wilgnert/mnbe/internal/pkg/auth"
 )
 
 const (
 	UserEmail = "user.email"
-	UserPassword = "User.password"
+	UserPassword = "user.password"
+	UserID = "user.id"
+	RequestAuthorization = "request.Authorization"
+	RequestApiKey = "request.api-key"
+	RequestBearer = "request.bearer"
 )
 
 type Key string
@@ -52,7 +58,7 @@ func Logging(next http.Handler) http.Handler {
 	})
 }
 
-func ExtractFieldMiddleware(fieldName string, ExtractedFieldKey Key) func(http.Handler) http.Handler {
+func ExtractFieldFromBodyMiddleware(fieldName string, ExtractedFieldKey Key) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Only process POST, PUT, or PATCH requests with JSON content type.
@@ -95,5 +101,64 @@ func ExtractFieldMiddleware(fieldName string, ExtractedFieldKey Key) func(http.H
 	}
 }
 
-var ExtractEmail = ExtractFieldMiddleware("email", UserEmail)
-var ExtractPassword = ExtractFieldMiddleware("password", UserPassword)
+func ExtractFieldFromHeaderMiddleware(fieldName string, extractedFieldKey Key) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Extract the value from the header.
+			value := r.Header.Get(fieldName)
+
+			// Check if the header field exists.
+			if value == "" {
+				http.Error(w, fmt.Sprintf("Header field '%s' not found", fieldName), http.StatusBadRequest)
+				return // Important:  Return after sending the error.
+			}
+
+			// Create a new context with the extracted value.
+			ctx := context.WithValue(r.Context(), extractedFieldKey, value)
+
+			// Serve the next handler with the new context.
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+}
+
+func ExtractAPIKey(next http.Handler) http.Handler {
+	return http.HandlerFunc(func (w http.ResponseWriter, r *http.Request) {
+		value, err := auth.GetAPIKey(r.Header)
+
+		// Check if the header field exists.
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return // Important:  Return after sending the error.
+		}
+		// Create a new context with the extracted value.
+		ctx := context.WithValue(r.Context(), Key(RequestApiKey), value)
+
+		// Serve the next handler with the new context.
+		next.ServeHTTP(w, r.WithContext(ctx))
+
+	})
+}
+
+func ExtractBearer(next http.Handler) http.Handler {
+	return http.HandlerFunc(func (w http.ResponseWriter, r *http.Request) {
+		v, err := auth.GetBearerToken(r.Header)
+
+		// Check if the header field exists.
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return // Important:  Return after sending the error.
+		}
+
+		// Create a new context with the extracted value.
+		ctx := context.WithValue(r.Context(), Key(RequestBearer), v)
+
+		// Serve the next handler with the new context.
+		next.ServeHTTP(w, r.WithContext(ctx))
+
+	})
+}
+
+var ExtractEmail = ExtractFieldFromBodyMiddleware("email", UserEmail)
+var ExtractPassword = ExtractFieldFromBodyMiddleware("password", UserPassword)
+var ExtractUserID = ExtractFieldFromBodyMiddleware("user_id", UserID)

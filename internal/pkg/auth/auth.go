@@ -26,19 +26,23 @@ func CheckPasswordHash(hash, password string) error {
 
 func GetAPIKey(headers http.Header) (string, error) {
 	authHeader := headers.Get("Authorization")
-	if authHeader == "" {
+	return GetFromAuthorization(authHeader, "ApiKey ")
+
+}
+
+func GetFromAuthorization(authorization, prefix string) (string, error) {
+	if authorization == "" {
 		return "", fmt.Errorf("missing Authorization header")
 	}
-	if len(authHeader) < 7 || authHeader[:7] != "ApiKey " {
+	if len(authorization) < len(prefix) || authorization[:len(prefix)] != prefix {
 		return "", fmt.Errorf("invalid Authorization header format")
 	}
-	token := authHeader[7:]
+	token := authorization[len(prefix):]
 	if token == "" {
 		return "", fmt.Errorf("missing token in Authorization header")
 	}
 	return token, nil
 }
-
 
 func MakeJWT(userID uuid.UUID, tokenSecret string, expiresIn time.Duration) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.RegisteredClaims{
@@ -63,17 +67,7 @@ func ValidateJWT(tokenString, tokenSecret string) (uuid.UUID, error) {
 
 func GetBearerToken(headers http.Header) (string, error) {
 	authHeader := headers.Get("Authorization")
-	if authHeader == "" {
-		return "", fmt.Errorf("missing Authorization header")
-	}
-	if len(authHeader) < 7 || authHeader[:7] != "Bearer " {
-		return "", fmt.Errorf("invalid Authorization header format")
-	}
-	token := authHeader[7:]
-	if token == "" {
-		return "", fmt.Errorf("missing token in Authorization header")
-	}
-	return token, nil
+	return GetFromAuthorization(authHeader, "Bearer ")
 }
 
 func MakeRefreshToken() (string, error) {

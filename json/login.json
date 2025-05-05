@@ -1,0 +1,22 @@
+{
+  "username": "name",
+  "hashed_password": "$2a$12$QVUf4CtegRU/vbHQ3qDWA.evhhXDdIZUXyv1GUnhUAiLqhdwDJs/G"
+}
+
+{
+  "id": "uuid",
+  "username": "name",
+  "created_at": "date",
+  "updated_at": "date",
+  "premium_expires_at": "date",
+  "jwt": "jwt",
+  "roles": [
+    "admin",
+    "moderator",
+    "work_id",
+    "work_id",
+    "work_id",
+    "work_id",
+    "user_id"
+  ]
+}
